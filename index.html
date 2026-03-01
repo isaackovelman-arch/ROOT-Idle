@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROOT // idle</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+  --green:#00ff41; --green-dim:#00c032; --green-faint:#002a0a; --green-mid:#007a28;
+  --amber:#ffb000; --amber-dim:#7a5500; --red:#ff2244; --red-dim:#7a0018;
+  --cyan:#00e5ff; --purple:#cc44ff; --purple-dim:#5a1a7a;
+  --bg:#040804; --bg2:#060a06; --border:#102010;
+  --a:var(--green); --ad:var(--green-mid); --af:var(--green-faint);
+}
+body.th-amber{--a:var(--amber);--ad:var(--amber-dim);--af:#1a0e00;--bg:#080604;--bg2:#0a0804;--border:#201808}
+body.th-red  {--a:var(--red);  --ad:var(--red-dim);  --af:#1a0004;--bg:#080404;--bg2:#0a0606;--border:#200808}
+body.th-cyan {--a:var(--cyan); --ad:#007a8a;         --af:#001a1e;--bg:#040808;--bg2:#060a0a;--border:#081820}
+body.th-purple{--a:var(--purple);--ad:var(--purple-dim);--af:#140a1e;--bg:#060408;--bg2:#08060a;--border:#180a20}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--a);font-family:'Share Tech Mono',monospace;font-size:12px;height:100vh;overflow:hidden;transition:background .3s,color .3s}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);pointer-events:none;z-index:9999}
+
+/* APP GRID */
+#app{display:grid;grid-template-rows:42px 1fr 26px;height:100vh;overflow:hidden}
+
+/* HEADER */
+#hdr{border-bottom:1px solid var(--border);padding:0 10px;display:flex;align-items:center;gap:8px;background:var(--bg2);overflow:hidden}
+.logo{font-family:'VT323',monospace;font-size:26px;color:var(--a);text-shadow:0 0 14px var(--a);letter-spacing:4px;flex-shrink:0}
+.pill{background:var(--af);border:1px solid var(--border);padding:2px 6px;font-size:10px;color:var(--ad);flex-shrink:0}
+.pill b{color:var(--a);font-weight:normal}
+.hbtn{background:transparent;border:1px solid var(--ad);color:var(--ad);font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.hbtn:hover{background:var(--af);border-color:var(--a);color:var(--a)}
+
+/* MAIN ROW */
+#main{display:flex;overflow:hidden;min-height:0}
+
+/* LEFT PANEL: scripts/crypto/upgrades */
+#lpanel{width:235px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+#lscroll{flex:1;overflow-y:auto;padding:8px;min-height:0}
+
+/* RIGHT PANEL: resources/target/log — fills rest */
+#rpanel{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* FOOTER */
+#ftr{border-top:1px solid var(--border);padding:0 10px;display:flex;align-items:center;gap:14px;background:var(--bg2);font-size:9.5px;color:var(--border)}
+#ftr b{color:var(--ad);font-weight:normal}
+
+/* SECTION TITLE */
+.ptitle{font-family:'VT323',monospace;font-size:14px;color:var(--ad);border-bottom:1px solid var(--border);padding-bottom:3px;margin-bottom:6px;letter-spacing:2px}
+
+/* RESOURCES */
+#res-box{padding:8px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.rlbl{color:var(--ad);font-size:9px;text-transform:uppercase;letter-spacing:1px}
+.rval{font-family:'VT323',monospace;font-size:20px;color:var(--a)}
+.rval.amb{color:var(--amber)}
+.rval.red{color:var(--red)}
+.bwrap{background:#050905;border:1px solid var(--border);height:5px;margin-top:2px}
+.bfill{height:100%;background:var(--a);transition:width .3s,background .3s}
+.bfill.warn{background:var(--amber);box-shadow:0 0 4px var(--amber)}
+.bfill.danger{background:var(--red);box-shadow:0 0 6px var(--red);animation:bpulse .4s ease infinite alternate}
+@keyframes bpulse{to{opacity:.35}}
+
+/* TARGET */
+#tgt-box{padding:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+#prestige-btn{width:100%;background:transparent;border:1px solid var(--ad);color:var(--a);font-family:'Share Tech Mono',monospace;font-size:9px;padding:5px;cursor:pointer;transition:all .15s;text-align:left;margin-top:6px}
+#prestige-btn:hover:not(:disabled){background:var(--af);border-color:var(--a)}
+#prestige-btn:disabled{opacity:.2;cursor:not-allowed}
+
+/* LOG */
+#log-box{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:8px;min-height:0}
+#log-entries{flex:1;overflow-y:auto;min-height:0}
+.le{font-size:9.5px;padding:1px 0;border-bottom:1px solid var(--border);animation:lei .2s ease}
+@keyframes lei{from{opacity:0;transform:translateX(3px)}}
+.le .lt{color:var(--border);margin-right:4px}
+.le.warn{color:var(--amber)}.le.danger{color:var(--red)}.le.good{color:var(--a)}.le.crypto{color:var(--amber)}.le.virus{color:var(--red)}
+
+/* SCRIPTS */
+.sitem{margin-bottom:8px;padding:6px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:border-color .12s}
+.sitem:hover{border-color:var(--ad)}
+.sname{color:var(--a);font-size:11px}
+.scmt{color:var(--ad);font-size:9px}
+.sdesc{color:var(--border);font-size:9px;margin:2px 0 4px}
+.pwrap{background:#050905;border:1px solid var(--border);height:6px;overflow:hidden}
+.pfill{height:100%;background:var(--a);box-shadow:0 0 4px var(--ad);transition:width .1s linear}
+.plbl{display:flex;justify-content:space-between;font-size:9px;color:var(--ad);margin-top:1px}
+
+/* COINS */
+.crow{display:flex;align-items:center;gap:5px;padding:5px 6px;border:1px solid var(--border);margin-bottom:4px;cursor:pointer;transition:all .12s}
+.crow:hover:not(.lk){border-color:var(--amber-dim,#7a5500)}
+.crow.mining{border-color:var(--amber);background:#100e00}
+.crow.lk{opacity:.25;cursor:not-allowed}
+.cicon{font-size:13px}
+.cname{flex:1;font-size:10px}
+.cbal{font-size:10px;color:var(--amber)}
+.mpwrap{background:#0a0800;border:1px solid #1a1500;height:4px;margin-top:2px;overflow:hidden}
+.mpfill{height:100%;background:var(--amber);transition:width .1s linear}
+
+/* UPGRADES */
+.uitem{display:flex;gap:5px;margin-bottom:5px;padding:5px;border:1px solid var(--border);cursor:pointer;transition:all .1s}
+.uitem:hover:not(.lk):not(.bgt){border-color:var(--a);background:var(--af)}
+.uitem.lk{opacity:.22;cursor:not-allowed}
+.uitem.bgt{opacity:.28;cursor:default}
+.uname{font-size:10px;color:var(--a);flex:1}
+.ucost{font-size:9px;color:var(--amber);white-space:nowrap}
+.udesc{font-size:9px;color:var(--border);margin-top:1px}
+
+/* SIDEBARS */
+.sidebar{position:fixed;top:42px;height:calc(100vh - 68px);background:var(--bg2);z-index:500;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+#term-sb{width:420px;left:0;border-right:1px solid var(--ad);box-shadow:6px 0 20px rgba(0,0,0,.5);transform:translateX(-100%)}
+#term-sb.open{transform:translateX(0)}
+#cmd-sb{width:260px;right:0;border-left:1px solid var(--ad);box-shadow:-6px 0 20px rgba(0,0,0,.5);transform:translateX(100%)}
+#cmd-sb.open{transform:translateX(0)}
+
+.sb-hdr{padding:7px 10px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;gap:8px}
+.sb-title{font-family:'VT323',monospace;font-size:17px;color:var(--a);letter-spacing:2px}
+.tdot{width:9px;height:9px;border-radius:50%;background:var(--ad);box-shadow:0 0 5px var(--ad);animation:tdota 2s ease infinite alternate;flex-shrink:0}
+@keyframes tdota{to{background:var(--a);box-shadow:0 0 10px var(--a)}}
+
+/* TERMINAL */
+#term-out{flex:1;overflow-y:auto;padding:5px 10px 2px;display:flex;flex-direction:column;min-height:0}
+.tl{font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all}
+.tl.cmd{color:var(--a)}.tl.out{color:var(--ad)}.tl.err{color:var(--red)}
+.tl.good{color:var(--a);text-shadow:0 0 4px var(--ad)}.tl.warn{color:var(--amber)}
+.tl.sys{color:var(--border);font-style:italic}.tl.crypto{color:var(--amber)}.tl.virus{color:var(--red)}
+#term-in-row{display:flex;align-items:center;padding:4px 10px;border-top:1px solid var(--border);gap:5px;flex-shrink:0;background:var(--bg2)}
+#term-prompt{color:var(--a);font-size:11px;white-space:nowrap}
+#term-in{flex:1;background:transparent;border:none;outline:none;color:var(--a);font-family:'Share Tech Mono',monospace;font-size:11px;caret-color:var(--a)}
+
+/* CMD SIDEBAR */
+.sb-search{margin:5px 7px;background:var(--bg);border:1px solid var(--border);color:var(--a);font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 7px;outline:none;width:calc(100% - 14px)}
+.sb-search:focus{border-color:var(--ad)}
+#cmd-list{flex:1;overflow-y:auto;padding:3px 5px 8px}
+.cs-title{font-size:9px;color:var(--border);text-transform:uppercase;letter-spacing:1px;padding:4px 3px 2px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.cbtn{display:flex;align-items:flex-start;gap:5px;width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--ad);font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px;cursor:pointer;text-align:left;transition:all .1s}
+.cbtn:hover{background:var(--af);color:var(--a)}
+.cb-cmd{color:var(--a);min-width:110px}
+.cb-desc{color:var(--border);font-size:9px;flex:1}
+
+/* WORLD MODAL */
+#wmodal{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:800}
+#wbox{border:1px solid var(--ad);background:var(--bg);padding:18px;width:460px;max-width:95vw}
+.wm-title{font-family:'VT323',monospace;font-size:22px;color:var(--a);margin-bottom:10px;letter-spacing:3px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.wcard{padding:9px;border:1px solid var(--border);cursor:pointer;transition:all .12s}
+.wcard:hover:not(.wlk){border-color:var(--a);background:var(--af)}
+.wcard.wact{border-color:var(--a);background:var(--af)}
+.wcard.wlk{opacity:.3;cursor:not-allowed}
+.wc-name{font-family:'VT323',monospace;font-size:17px;color:var(--a)}
+.wc-desc{font-size:9.5px;color:var(--ad);margin-top:3px}
+.de{color:var(--a)}.dm{color:var(--amber)}.dh{color:var(--red)}.di{color:var(--purple)}
+#wclose{margin-top:12px;background:transparent;border:1px solid var(--border);color:var(--ad);font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 14px;cursor:pointer;width:100%}
+#wclose:hover{border-color:var(--a);color:var(--a)}
+
+/* HEAT ALERT */
+#alert-ov{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000}
+#alert-box{border:1px solid var(--red);background:var(--bg);padding:18px;max-width:360px;width:90%;animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.at{font-family:'VT323',monospace;font-size:20px;color:var(--red);margin-bottom:7px}
+.ab{color:var(--ad);font-size:10.5px;line-height:1.6;margin-bottom:7px}
+.abtn{background:transparent;border:1px solid var(--red);color:var(--red);font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 10px;cursor:pointer;width:100%;margin-top:4px;transition:all .15s}
+.abtn:hover{background:rgba(255,34,68,.08)}
+.abtn.sec{border-color:var(--ad);color:var(--ad)}
+.abtn.sec:hover{background:var(--af)}
+
+/* PRESTIGE WIPE */
+#pwipe{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;z-index:2000}
+.wl{color:var(--a);font-size:12px;margin:3px 0;opacity:0;font-family:'Share Tech Mono',monospace;transition:opacity .2s}
+
+@keyframes blink{50%{opacity:0}}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="logo">ROOT<span style="animation:blink 1s step-end infinite;display:inline-block">_</span></div>
+  <div class="pill">alias: <b id="h-alias">GHOST_NULL</b></div>
+  <div class="pill">tier: <b id="h-tier">SCRIPT_KIDDIE</b></div>
+  <div class="pill">exploits: <b id="h-exp">0</b></div>
+  <div class="pill" id="h-world" style="color:var(--amber)">◈ NULL_SECTOR</div>
+  <div style="margin-left:auto;display:flex;gap:5px">
+    <button class="hbtn" onclick="openWorld()">// WORLDS</button>
+    <button class="hbtn" id="cmd-btn" onclick="toggleCmd()">▶ CMDS</button>
+    <button class="hbtn" id="term-btn" onclick="toggleTerm()">▶ TERM</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- LEFT: scripts / crypto / upgrades -->
+  <div id="lpanel">
+    <div id="lscroll">
+      <div class="ptitle">// SCRIPTS</div>
+      <div id="scripts-list"></div>
+      <div class="ptitle" style="margin-top:8px">⛏ CRYPTO</div>
+      <div id="coins-list"></div>
+      <div class="ptitle" style="margin-top:8px">// UPGRADES</div>
+      <div id="upgrades-list"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: resources / target / log -->
+  <div id="rpanel">
+    <div id="res-box">
+      <div class="ptitle">// RESOURCES</div>
+      <div class="rgrid">
+        <div><div class="rlbl">cycles</div><div class="rval" id="r-cyc">0</div></div>
+        <div><div class="rlbl">data</div><div class="rval" id="r-dat">0</div></div>
+        <div><div class="rlbl">rep</div><div class="rval" id="r-rep">0</div></div>
+        <div><div class="rlbl">coins</div><div class="rval amb" id="r-coin">0.000</div></div>
+        <div style="grid-column:1/-1">
+          <div class="rlbl">heat <span id="r-hpct" style="color:var(--red-dim)">0%</span></div>
+          <div class="bwrap"><div class="bfill" id="heat-bar" style="width:0%"></div></div>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="rlbl">virus payloads</div>
+          <div class="rval red" id="r-vir">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tgt-box">
+      <div class="ptitle">// TARGET</div>
+      <div style="font-size:10px;color:var(--ad)" id="tgt-name">neighbor_wifi.local</div>
+      <div class="bwrap" style="height:9px;margin-top:4px"><div class="bfill" id="tgt-bar" style="width:0%"></div></div>
+      <div style="font-size:9px;color:var(--ad);margin-top:2px" id="tgt-pct">0 / 300</div>
+      <button id="prestige-btn" disabled>
+        &gt; identity_wipe.sh // prestige<br>
+        <span style="color:var(--border);font-size:8px">active scripts persist through wipe</span>
+      </button>
+    </div>
+
+    <div id="log-box">
+      <div class="ptitle">// SYS_LOG</div>
+      <div id="log-entries"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div id="ftr">
+  <span>ROOT v2.1</span> //
+  <b id="ft-time">00:00:00</b> //
+  runs: <b id="ft-runs">0</b> //
+  world: <b id="ft-world">NULL_SECTOR</b> //
+  mining: <b id="ft-mine">OFF</b>
+</div>
+
+</div><!-- /app -->
+
+<!-- TERMINAL SIDEBAR (left) -->
+<div class="sidebar" id="term-sb">
+  <div class="sb-hdr">
+    <div class="tdot"></div>
+    <div class="sb-title">// TERMINAL</div>
+    <span style="margin-left:auto;font-size:9px;color:var(--border)">tab · ↑↓ · Ctrl+L</span>
+    <button class="hbtn" onclick="toggleTerm()" style="padding:2px 6px;font-size:10px">✕</button>
+  </div>
+  <div id="term-out"></div>
+  <div id="term-in-row">
+    <span id="term-prompt">root@null:~$</span>
+    <input id="term-in" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+</div>
+
+<!-- CMD SIDEBAR (right) -->
+<div class="sidebar" id="cmd-sb">
+  <div class="sb-hdr">
+    <div class="sb-title">// CMD_REF</div>
+    <span style="font-size:9px;color:var(--border);margin-left:4px">click to run</span>
+  </div>
+  <input class="sb-search" id="cmd-search" placeholder="// filter..." oninput="filterCmds(this.value)">
+  <div id="cmd-list"></div>
+</div>
+
+<!-- WORLD MODAL -->
+<div id="wmodal">
+  <div id="wbox">
+    <div class="wm-title">// SELECT_WORLD</div>
+    <div class="wgrid" id="world-grid"></div>
+    <button id="wclose" onclick="closeWorld()">// close</button>
+  </div>
+</div>
+
+<!-- HEAT ALERT -->
+<div id="alert-ov">
+  <div id="alert-box">
+    <div class="at">// INTRUSION_DETECTED</div>
+    <p class="ab">Anomalous traffic detected. Trace active. Run countermeasures now.</p>
+    <p id="alert-cost" style="color:var(--amber);font-size:10px;margin-bottom:5px">Cost: 300 data</p>
+    <button class="abtn" onclick="runCM()">&gt; run countermeasures.sh</button>
+    <button class="abtn sec" onclick="ignoreHeat()">&gt; ignore (dangerous)</button>
+  </div>
+</div>
+
+<!-- PRESTIGE WIPE -->
+<div id="pwipe" style="flex-direction:column">
+  <div id="pwipe-lines" style="width:440px"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DEFINITIONS
+// ═══════════════════════════════════════════════════════
+
+const ALIASES=['GHOST_NULL','V01D_WALKER','NULL_BYTE','PHANTOM_X','DARK_NODE',
+               'ZERO_DAY','CIPHER_R','BYTE_WRAITH','SH4DOWRUN','NETPH4NT0M'];
+
+const WORLDS=[
+  {id:'null',  name:'NULL_SECTOR', desc:'Surface web. Unprotected networks.',   req:0,  hm:1,   rm:1,   diff:'easy'},
+  {id:'deep',  name:'DEEP_NET',    desc:'Corporate infra. Heavy monitoring.',    req:2,  hm:1.7, rm:1.9, diff:'medium'},
+  {id:'dark',  name:'DARK_MATRIX', desc:'Gov blacknets. Everything logged.',     req:5,  hm:3.0, rm:3.8, diff:'hard'},
+  {id:'ghost', name:'GHOST_LAYER', desc:'Unknown infra. Code barely works.',     req:10, hm:5.5, rm:7.5, diff:'insane'},
+];
+
+const WORLD_TIERS={
+  null:[
+    {name:'SCRIPT_KIDDIE',target:'neighbor_wifi.local',    goal:300},
+    {name:'BLACK_HAT',    target:'small_corp_db.net',      goal:1400},
+    {name:'APT_NOVICE',   target:'regional_bank.net',      goal:5000},
+    {name:'APT_SENIOR',   target:'gov_outpost.mil',        goal:15000},
+  ],
+  deep:[
+    {name:'INFILTRATOR',  target:'corp_mainframe.internal',goal:6000},
+    {name:'PHANTOM',      target:'fed_reserve_node.bank',  goal:25000},
+    {name:'SPECTER',      target:'nsa_satellite.gov',      goal:80000},
+  ],
+  dark:[
+    {name:'SHADOW_OPS',   target:'dark_market_core.onion', goal:100000},
+    {name:'GHOST_RUNNER', target:'mil_ai_cluster.classified',goal:400000},
+  ],
+  ghost:[
+    {name:'ARCHITECT',    target:'unknown_0x7f.void',      goal:1200000},
+  ],
+};
+
+const SCRIPT_DEFS=[
+  {id:'sh',      name:'script.sh',        cmt:'// basic cycle gen',      desc:'Generates cycles.',              dur:6,   rew:{cyc:6},                 ul:{},        avail:true},
+  {id:'hvst',    name:'harvest_data.py',  cmt:'// scrape endpoints',     desc:'Harvests data. Raises heat.',    dur:13,  rew:{dat:10,heat:3},         ul:{cyc:120}, avail:false},
+  {id:'ftp',     name:'exploit_ftp.py',   cmt:'// ftp vuln',             desc:'FTP exploit + target progress.', dur:22,  rew:{cyc:32,tp:3,heat:8},   ul:{cyc:600}, avail:false},
+  {id:'dnpost',  name:'darknet_post.sh',  cmt:'// build rep',            desc:'Earns rep on dark forums.',      dur:32,  rew:{rep:3,dat:6},           ul:{dat:80},  avail:false},
+  {id:'root',    name:'root_access.py',   cmt:'// priv escalation',      desc:'Massive target progress.',       dur:48,  rew:{tp:10,cyc:60,heat:18}, ul:{rep:15},  avail:false},
+  {id:'launder', name:'coin_launder.sh',  cmt:'// wash crypto',          desc:'Converts coins to data.',        dur:36,  rew:{dat:50,heat:10},        ul:{coin:2},  avail:false},
+  {id:'virusbld',name:'build_virus.sh',   cmt:'// compile payload',      desc:'Builds virus payloads.',         dur:65,  rew:{vir:1,heat:15},         ul:{rep:25},  avail:false},
+  {id:'botnet',  name:'deploy_bot.sh',    cmt:'// spread botnet',        desc:'Passive boost.',                 dur:90,  rew:{cyc:120,dat:40,heat:20},ul:{rep:40},  avail:false},
+];
+
+const COIN_DEFS=[
+  {id:'xc0',sym:'XC0',icon:'◈',name:'xC0IN',    col:'var(--amber)',   rate:0.002,ht:10,cost:{cyc:400},        ul:{cyc:200}},
+  {id:'nlc',sym:'NLC',icon:'∅',name:'nullCash', col:'var(--cyan)',    rate:0.008,ht:20,cost:{cyc:1000,dat:80},ul:{dat:60}},
+  {id:'ghc',sym:'GHC',icon:'◇',name:'GhostCoin',col:'var(--purple)',  rate:0.025,ht:40,cost:{dat:300,rep:8}, ul:{rep:5}},
+  {id:'rtk',sym:'RTK',icon:'⬡',name:'rootToken',col:'var(--green)',   rate:0.08, ht:80,cost:{dat:1000,rep:30},ul:{rep:22}},
+];
+
+const UPG_DEFS=[
+  {id:'cpu1', name:'// overclock_v1',    desc:'+30% cycle gen',            cost:{cyc:500},          ul:{cyc:300},  eff(){G.cMult*=1.3}},
+  {id:'cpu2', name:'// overclock_v2',    desc:'+50% cycle gen',            cost:{cyc:2500},         ul:{cyc:1200}, eff(){G.cMult*=1.5}},
+  {id:'stlth',name:'// stealth_mode',    desc:'Heat decay 35% faster',     cost:{cyc:1500},         ul:{cyc:600},  eff(){G.hdMult*=1.35}},
+  {id:'vpn',  name:'// vpn_chain',       desc:'Max heat +40',              cost:{dat:500,rep:20},   ul:{rep:12},   eff(){G.maxHeat+=40}},
+  {id:'scr2', name:'// deep_scrape',     desc:'+60% data from scripts',    cost:{dat:200},          ul:{dat:100},  eff(){G.dMult*=1.6}},
+  {id:'bot',  name:'// passive_botnet',  desc:'Always drip cycles',        cost:{cyc:3000,rep:20},  ul:{rep:18},   eff(){G.hasBotnet=true}},
+  {id:'asic', name:'// asic_miner',      desc:'+100% mining rate',         cost:{cyc:4000,coin:3},  ul:{coin:2},   eff(){G.mMult*=2}},
+  {id:'pool', name:'// mining_pool',     desc:'Rig yield x2',              cost:{dat:2000,coin:8},  ul:{coin:5},   eff(){G.poolBonus=2}},
+  {id:'zday', name:'// 0day_bundle',     desc:'Scripts 20% faster, tp x2', cost:{cyc:8000,dat:2000,rep:60},ul:{rep:50},eff(){G.zday=true}},
+  {id:'av',   name:'// av_bypass',       desc:'Virus build 50% faster',    cost:{dat:1500,rep:35},  ul:{rep:28},   eff(){G.virusSpd*=1.5}},
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const G={
+  cyc:0, dat:0, rep:0, coin:0, heat:0, maxHeat:100, vir:0,
+  tp:0, exploits:0, runs:0, alias:'GHOST_NULL',
+  elapsed:0, world:'null', worldTier:0, heatAlert:false,
+  cMult:1, dMult:1, mMult:1, hdMult:1, poolBonus:1,
+  hasBotnet:false, zday:false, virusSpd:1,
+};
+const coinBal={xc0:0,nlc:0,ghc:0,rtk:0};
+const miners={xc0:{active:false,prog:0,rigs:0},nlc:{active:false,prog:0,rigs:0},
+              ghc:{active:false,prog:0,rigs:0},rtk:{active:false,prog:0,rigs:0}};
+const upgBought=new Set();
+let activeScripts=[];
+let lastT=performance.now(), tickAcc=0;
+let termOpen=false, cmdOpen=false;
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
+function sv(id,v){const e=$(id);if(e)e.textContent=v}
+function fmt(n){n=Math.floor(n);if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'k';return String(n)}
+function fmtf(n,d){d=d||3;if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'k';return n.toFixed(d)}
+function pad(n){return String(n).padStart(2,'0')}
+function rng(){return Math.random()}
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function wdef(){return WORLDS.find(function(w){return w.id===G.world})||WORLDS[0]}
+function tlist(){return WORLD_TIERS[G.world]||WORLD_TIERS.null}
+function ctier(){return tlist()[Math.min(G.worldTier,tlist().length-1)]}
+function hm(){return wdef().hm}
+function rm(){return wdef().rm}
+
+// ═══════════════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════════════
+function log(msg,cls){
+  cls=cls||'';
+  const c=$('log-entries');
+  const e=document.createElement('div');
+  e.className='le'+(cls?' '+cls:'');
+  const s=Math.floor(G.elapsed), mm=pad(Math.floor(s/60)), ss=pad(s%60);
+  e.innerHTML='<span class="lt">['+mm+':'+ss+']</span>'+msg;
+  c.prepend(e);
+  while(c.children.length>120) c.removeChild(c.lastChild);
+}
+
+// ═══════════════════════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════════════════════
+function loop(now){
+  var dt=Math.min((now-lastT)/1000,0.1);
+  lastT=now; G.elapsed+=dt; tickAcc+=dt;
+
+  if(G.hasBotnet) G.cyc+=1.2*G.cMult*dt;
+  if(G.heat>0) G.heat=Math.max(0,G.heat-1.4*G.hdMult/hm()*dt);
+
+  procScripts(dt);
+  procMining(dt);
+  checkUnlocks();
+
+  if(G.heat>=G.maxHeat*0.88&&!G.heatAlert){G.heatAlert=true;showAlert();}
+
+  $('prestige-btn').disabled=(G.tp<ctier().goal);
+
+  if(tickAcc>=0.5){tickAcc=0;renderCoins();renderUps();}
+  updateUI();
+  requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════
+// SCRIPTS
+// ═══════════════════════════════════════════════════════
+function checkUnlocks(){
+  SCRIPT_DEFS.forEach(function(def){
+    if(def.avail) return;
+    var u=def.ul;
+    if(u.cyc&&G.cyc<u.cyc) return;
+    if(u.dat&&G.dat<u.dat) return;
+    if(u.rep&&G.rep<u.rep) return;
+    if(u.coin&&G.coin<u.coin) return;
+    def.avail=true;
+    log('// unlocked: '+def.name,'good');
+    renderScripts();
+    launch(def.id);
+  });
+}
+
+function procScripts(dt){
+  var done=[];
+  activeScripts.forEach(function(s){
+    s.p+=dt;
+    var pct=Math.min(s.p/s.dur,1);
+    var pf=$('sp-'+s.id), pl=$('sl-'+s.id), pp=$('sp2-'+s.id);
+    if(pf) pf.style.width=(pct*100)+'%';
+    if(pp) pp.textContent=Math.floor(pct*100)+'%';
+    if(pl) pl.textContent=pct<1?'running...':'done!';
+    if(pct>=1){
+      done.push(s.id);
+      var def=SCRIPT_DEFS.find(function(d){return d.id===s.id});
+      applyRew(def);
+      (function(pf2,pp2,pl2){
+        setTimeout(function(){
+          if(pf2)pf2.style.width='0%';
+          if(pp2)pp2.textContent='0%';
+          if(pl2)pl2.textContent='idle...';
+        },300);
+      })(pf,pp,pl);
+    }
+  });
+  done.forEach(function(id){
+    activeScripts=activeScripts.filter(function(s){return s.id!==id});
+    var def=SCRIPT_DEFS.find(function(d){return d.id===id});
+    if(def&&def.avail)(function(did){setTimeout(function(){launch(did)},400)})(id);
+  });
+}
+
+function launch(id){
+  var def=SCRIPT_DEFS.find(function(d){return d.id===id});
+  if(!def||!def.avail) return;
+  if(activeScripts.find(function(s){return s.id===id})) return;
+  if(G.heat>=G.maxHeat){log('// heat critical — scripts halted','danger');return;}
+  var dur=G.zday?def.dur*0.8:def.dur;
+  activeScripts.push({id:id,p:0,dur:dur});
+}
+
+function applyRew(def){
+  var r=def.rew, wm=rm(), ex=1+G.exploits*0.08, gained=[];
+  if(r.cyc){var a=r.cyc*G.cMult*wm*ex;G.cyc+=a;gained.push('+'+fmt(a)+'cyc')}
+  if(r.dat){var b=r.dat*G.dMult*wm*ex;G.dat+=b;gained.push('+'+fmt(b)+'dat')}
+  if(r.rep){G.rep+=r.rep*ex;gained.push('+'+fmtf(r.rep*ex,1)+'rep')}
+  if(r.heat) G.heat=Math.min(G.maxHeat,G.heat+r.heat*hm());
+  if(r.tp){var tp=G.zday?r.tp*2:r.tp;G.tp=Math.min(ctier().goal,G.tp+tp*wm)}
+  if(r.vir){G.vir+=r.vir;gained.push('+'+r.vir+'payload')}
+  if(gained.length) log(def.name+': '+gained.join(' '));
+}
+
+function renderScripts(){
+  var el=$('scripts-list'); el.innerHTML='';
+  SCRIPT_DEFS.forEach(function(def){
+    if(!def.avail) return;
+    var d=document.createElement('div');
+    d.className='sitem';
+    d.innerHTML='<div class="sname">&gt; '+def.name+'</div>'
+      +'<div class="scmt">'+def.cmt+'</div>'
+      +'<div class="sdesc">'+def.desc+'</div>'
+      +'<div class="pwrap"><div class="pfill" id="sp-'+def.id+'" style="width:0%"></div></div>'
+      +'<div class="plbl"><span id="sl-'+def.id+'">idle...</span><span id="sp2-'+def.id+'">0%</span></div>';
+    (function(did){d.onclick=function(){launch(did)}})(def.id);
+    el.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// CRYPTO
+// ═══════════════════════════════════════════════════════
+function procMining(dt){
+  var any=false;
+  COIN_DEFS.forEach(function(coin){
+    var m=miners[coin.id];
+    if(!m.active) return;
+    any=true;
+    var dur=coin.ht/G.mMult;
+    m.prog+=dt;
+    var pb=$('mp-'+coin.id);
+    if(pb) pb.style.width=Math.min(m.prog/dur*100,100)+'%';
+    if(m.prog>=dur){
+      m.prog=0;
+      var earned=coin.rate*dur*G.mMult*G.poolBonus*(1+m.rigs*0.4)*(1+G.exploits*0.04)*rm();
+      coinBal[coin.id]+=earned; G.coin+=earned;
+      G.heat=Math.min(G.maxHeat,G.heat+0.5*(1+m.rigs*0.12)*hm());
+      if(rng()<0.08) log(coin.icon+' mined '+earned.toFixed(4)+' '+coin.sym,'crypto');
+    }
+  });
+  sv('ft-mine',any?'ACTIVE':'OFF');
+}
+
+function coinUnlocked(coin){
+  var u=coin.ul;
+  if(u.cyc&&G.cyc<u.cyc) return false;
+  if(u.dat&&G.dat<u.dat) return false;
+  if(u.rep&&G.rep<u.rep) return false;
+  return true;
+}
+
+function toggleMiner(id){
+  var m=miners[id];
+  var coin=COIN_DEFS.find(function(c){return c.id===id});
+  if(!m.active){
+    var ok=true;
+    Object.keys(coin.cost).forEach(function(k){if((G[k]||0)<coin.cost[k]){log('// need '+coin.cost[k]+' '+k,'warn');ok=false;}});
+    if(!ok) return;
+    Object.keys(coin.cost).forEach(function(k){G[k]-=coin.cost[k]});
+    m.active=true; m.prog=0;
+    log('// ⛏ '+coin.name+' mining started','crypto');
+    log('// heat rises while mining','warn');
+  } else {
+    m.active=false;
+    log('// stopped '+coin.name);
+  }
+  renderCoins();
+}
+
+function buyRig(id){
+  var m=miners[id];
+  var coin=COIN_DEFS.find(function(c){return c.id===id});
+  var cost=Math.floor(500*Math.pow(2.2,m.rigs));
+  if(G.cyc<cost){log('// need '+fmt(cost)+' cycles','warn');return;}
+  G.cyc-=cost; m.rigs++;
+  log('// rig for '+coin.name+' ('+m.rigs+' total)','crypto');
+  renderCoins();
+}
+
+function renderCoins(){
+  var el=$('coins-list'); el.innerHTML='';
+  COIN_DEFS.forEach(function(coin){
+    var m=miners[coin.id], unl=coinUnlocked(coin);
+    var row=document.createElement('div');
+    row.className='crow'+(m.active?' mining':'')+(unl?'':' lk');
+    var rate=m.active?(coin.rate*G.mMult*G.poolBonus*(1+m.rigs*0.4)).toFixed(5):'—';
+    row.innerHTML='<span class="cicon" style="color:'+coin.col+'">'+coin.icon+'</span>'
+      +'<span class="cname" style="color:'+coin.col+'">'+coin.name+'</span>'
+      +'<span class="cbal">'+coinBal[coin.id].toFixed(3)+'</span>'
+      +'<span style="font-size:9px;color:var(--border);margin-left:3px">'+(m.active?rate+'/s':unl?'idle':'??')+'</span>';
+    if(m.active){
+      var pw=document.createElement('div');
+      pw.style.cssText='width:100%';
+      pw.innerHTML='<div class="mpwrap"><div class="mpfill" id="mp-'+coin.id+'" style="width:0%"></div></div>';
+      row.appendChild(pw);
+    }
+    if(unl)(function(cid){row.onclick=function(){toggleMiner(cid)}})(coin.id);
+    el.appendChild(row);
+    if(m.active){
+      var rc=Math.floor(500*Math.pow(2.2,m.rigs));
+      var rb=document.createElement('div');
+      rb.style.cssText='display:flex;align-items:center;gap:5px;margin-bottom:4px;font-size:9px;color:var(--border)';
+      rb.innerHTML='<span style="flex:1">'+coin.icon+' buy rig (+40%)</span>'
+        +'<button class="hbtn" style="font-size:8px;padding:2px 5px" id="rig-'+coin.id+'">'+fmt(rc)+' cyc</button>';
+      el.appendChild(rb);
+      (function(cid){
+        setTimeout(function(){
+          var btn=$('rig-'+cid);
+          if(btn) btn.onclick=function(){buyRig(cid)};
+        },0);
+      })(coin.id);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// UPGRADES
+// ═══════════════════════════════════════════════════════
+function upUnlocked(u){
+  var ul=u.ul;
+  if(ul.cyc&&G.cyc<ul.cyc) return false;
+  if(ul.dat&&G.dat<ul.dat) return false;
+  if(ul.rep&&G.rep<ul.rep) return false;
+  if(ul.coin&&G.coin<ul.coin) return false;
+  return true;
+}
+
+function buyUp(id){
+  var u=UPG_DEFS.find(function(x){return x.id===id});
+  if(!u||upgBought.has(id)) return;
+  if(!upUnlocked(u)){log('// requirements not met','warn');return;}
+  var ok=true;
+  Object.keys(u.cost).forEach(function(k){if((G[k]||0)<u.cost[k]){log('// need '+u.cost[k]+' '+k,'warn');ok=false;}});
+  if(!ok) return;
+  Object.keys(u.cost).forEach(function(k){G[k]-=u.cost[k]});
+  upgBought.add(id); u.eff();
+  log('// installed: '+u.name,'good');
+  renderUps();
+}
+
+function renderUps(){
+  var el=$('upgrades-list'); el.innerHTML='';
+  UPG_DEFS.forEach(function(u){
+    var lk=!upUnlocked(u), bt=upgBought.has(u.id);
+    var d=document.createElement('div');
+    d.className='uitem'+(lk?' lk':'')+(bt?' bgt':'');
+    var cs=Object.keys(u.cost).map(function(k){return fmt(u.cost[k])+k}).join('+');
+    d.innerHTML='<div style="flex:1"><div class="uname">'+u.name+'</div><div class="udesc">'+u.desc+'</div></div>'
+      +'<div class="ucost">'+(bt?'OK':cs)+'</div>';
+    if(!lk&&!bt)(function(uid){d.onclick=function(){buyUp(uid)}})(u.id);
+    el.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// UI UPDATE
+// ═══════════════════════════════════════════════════════
+function updateUI(){
+  var ct=ctier();
+  sv('r-cyc',fmt(G.cyc)); sv('r-dat',fmt(G.dat)); sv('r-rep',fmt(G.rep));
+  sv('r-coin',fmtf(G.coin,3)); sv('r-vir',G.vir);
+  var hp=G.heat/G.maxHeat*100;
+  sv('r-hpct',Math.floor(hp)+'%');
+  var hb=$('heat-bar');
+  hb.style.width=hp+'%';
+  hb.className='bfill'+(hp>88?' danger':hp>60?' warn':'');
+  $('tgt-bar').style.width=(G.tp/ct.goal*100)+'%';
+  sv('tgt-pct',fmt(G.tp)+' / '+fmt(ct.goal));
+  sv('h-alias',G.alias); sv('h-tier',ct.name); sv('h-exp',G.exploits);
+  var e=Math.floor(G.elapsed);
+  sv('ft-time',pad(Math.floor(e/3600))+':'+pad(Math.floor(e%3600/60))+':'+pad(e%60));
+  sv('ft-runs',G.runs); sv('ft-world',wdef().name);
+}
+
+// ═══════════════════════════════════════════════════════
+// HEAT
+// ═══════════════════════════════════════════════════════
+function showAlert(){
+  var cost=Math.floor(200+G.worldTier*120);
+  $('alert-cost').textContent='Cost: '+cost+' data';
+  $('alert-ov').style.display='flex';
+  log('// ⚠ INTRUSION DETECTED','danger');
+}
+function runCM(){
+  var cost=Math.floor(200+G.worldTier*120);
+  if(G.dat<cost){log('// need '+cost+' data','danger');return;}
+  G.dat-=cost; G.heat=G.maxHeat*0.2; G.heatAlert=false;
+  $('alert-ov').style.display='none';
+  log('// countermeasures OK','good');
+}
+function ignoreHeat(){$('alert-ov').style.display='none';log('// !! danger: critical heat','danger')}
+
+// ═══════════════════════════════════════════════════════
+// PRESTIGE
+// ═══════════════════════════════════════════════════════
+$('prestige-btn').addEventListener('click',function(){
+  if(G.tp<ctier().goal) return;
+  doPrestige();
+});
+
+function doPrestige(){
+  var ov=$('pwipe'), lines=$('pwipe-lines');
+  ov.style.display='flex'; lines.innerHTML='';
+  var alias=ALIASES[ri(0,ALIASES.length-1)];
+  var t=tlist(), nextWT=Math.min(G.worldTier+1,t.length-1);
+  var saved=activeScripts.map(function(s){return s.id});
+
+  var ls=[
+    '> initiating identity_wipe.sh',
+    '> saving active scripts...   OK',
+    '> deleting logs...        ████ 100%',
+    '> scrubbing metadata...   ████ 100%',
+    '> burning alias...        ████ 100%',
+    '',
+    '// all traces removed',
+    '// you were never here',
+    '',
+    '> new alias: ['+alias+']',
+    '> exploits: '+(G.exploits+1),
+    '> tier: '+t[nextWT].name,
+    '> scripts resuming: '+saved.length,
+    '> coins intact.',
+    '> loading...',
+  ];
+
+  var i=0;
+  function nextLine(){
+    if(i>=ls.length){
+      setTimeout(function(){
+        ov.style.display='none';
+        G.exploits++; G.runs++; G.worldTier=nextWT; G.alias=alias;
+        G.cyc=0; G.dat=0; G.rep=0; G.heat=0; G.heatAlert=false; G.tp=0;
+        activeScripts=[];
+        COIN_DEFS.forEach(function(c){miners[c.id].active=false;miners[c.id].prog=0});
+        sv('tgt-name',ctier().target);
+        log('// identity wiped → '+alias,'good');
+        log('// tier: '+ctier().name,'good');
+        log('// coins survived ⛏','crypto');
+        renderScripts(); renderCoins(); renderUps();
+        setTimeout(function(){
+          if(saved.length>0){
+            saved.forEach(function(id){
+              var def=SCRIPT_DEFS.find(function(d){return d.id===id});
+              if(def&&def.avail) launch(id);
+            });
+            log('// '+saved.length+' script(s) resumed','good');
+          } else {
+            launch('sh');
+          }
+        },500);
+      },800);
+      return;
+    }
+    var e=document.createElement('div');
+    e.className='wl'; e.textContent=ls[i]||'\u00a0';
+    lines.appendChild(e);
+    requestAnimationFrame(function(){e.style.opacity='1'});
+    i++;
+    setTimeout(nextLine,220);
+  }
+  nextLine();
+}
+
+// ═══════════════════════════════════════════════════════
+// WORLDS
+// ═══════════════════════════════════════════════════════
+function openWorld(){
+  var el=$('world-grid'); el.innerHTML='';
+  WORLDS.forEach(function(w){
+    var unl=G.runs>=w.req, act=G.world===w.id;
+    var d=document.createElement('div');
+    d.className='wcard'+(act?' wact':'')+(unl?'':' wlk');
+    var dc={easy:'de',medium:'dm',hard:'dh',insane:'di'}[w.diff];
+    d.innerHTML='<div class="wc-name">'+w.name+'</div>'
+      +'<div class="wc-desc">'+w.desc+'</div>'
+      +'<div class="wc-diff '+dc+'">['+w.diff+'] heat×'+w.hm+' reward×'+w.rm+'</div>'
+      +(w.req>0?'<div style="font-size:9px;color:var(--border)">req: '+w.req+' runs</div>':'');
+    if(unl)(function(wid){d.onclick=function(){selectWorld(wid)}})(w.id);
+    el.appendChild(d);
+  });
+  $('wmodal').style.display='flex';
+}
+function closeWorld(){$('wmodal').style.display='none'}
+function selectWorld(id){
+  if(G.world===id){closeWorld();return;}
+  G.world=id; G.worldTier=0; G.tp=0; G.heat=0; G.heatAlert=false;
+  activeScripts=[];
+  sv('tgt-name',ctier().target);
+  sv('h-world','◈ '+wdef().name);
+  log('// world → '+wdef().name,'warn');
+  log('// heat×'+wdef().hm+'  reward×'+wdef().rm);
+  renderScripts(); renderCoins();
+  setTimeout(function(){launch('sh')},300);
+  closeWorld();
+}
+
+// ═══════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════
+function setTheme(t){
+  document.body.className='';
+  if(t!=='green') document.body.classList.add('th-'+t);
+  log('// theme: '+t);
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBARS
+// ═══════════════════════════════════════════════════════
+function toggleTerm(){
+  termOpen=!termOpen;
+  $('term-sb').classList.toggle('open',termOpen);
+  $('term-btn').textContent=termOpen?'◀ TERM':'▶ TERM';
+  if(termOpen) setTimeout(function(){$('term-in').focus()},200);
+}
+function toggleCmd(){
+  cmdOpen=!cmdOpen;
+  $('cmd-sb').classList.toggle('open',cmdOpen);
+  $('cmd-btn').textContent=cmdOpen?'◀ CMDS':'▶ CMDS';
+}
+
+// ═══════════════════════════════════════════════════════
+// TERMINAL
+// ═══════════════════════════════════════════════════════
+var cmdHist=[], histIdx=-1;
+
+function tOut(text,cls){
+  cls=cls||'out';
+  var o=$('term-out');
+  var e=document.createElement('div');
+  e.className='tl '+cls;
+  e.textContent=text;
+  o.appendChild(e);
+  o.scrollTop=o.scrollHeight;
+}
+function tCmd(text){
+  var e=document.createElement('div');
+  e.className='tl cmd';
+  e.textContent=G.alias.toLowerCase()+'@'+G.world+':~$ '+text;
+  $('term-out').appendChild(e);
+  $('term-out').scrollTop=$('term-out').scrollHeight;
+}
+
+function runCmd(raw){
+  var t=raw.trim();
+  if(!t) return;
+  cmdHist.unshift(t);
+  if(cmdHist.length>60) cmdHist.pop();
+  histIdx=-1;
+  tCmd(t);
+  var parts=t.split(/\s+/), cmd=parts[0].toLowerCase(), args=parts.slice(1);
+
+  if(cmd==='help'){
+    tOut('');
+    tOut('  SYSTEM  : status  alias  clear  uptime  whoami  theme <n>','good');
+    tOut('  HACKING : scripts  run <n>  exploit  scan  target  prestige');
+    tOut('  VIRUS   : virus-status  purge-virus','virus');
+    tOut('  CRYPTO  : crypto  mine <id>  stopmine  wallet','crypto');
+    tOut('  UPGRADES: upgrades  buy <id>');
+    tOut('  WORLDS  : worlds  world <id>');
+    tOut('  MISC    : heat  cooldown  ping  ls  cat README');
+    tOut('');
+    tOut("  // [▶ CMDS] has clickable shortcuts",'sys');
+    tOut('');
+  }
+  else if(cmd==='status'){
+    var ct=ctier();
+    tOut('');
+    tOut('  ┌─ ROOT STATUS ───────────────────────┐','good');
+    tOut('  │ alias   : '+G.alias.padEnd(26)+'│');
+    tOut('  │ world   : '+wdef().name.padEnd(26)+'│');
+    tOut('  │ tier    : '+ct.name.padEnd(26)+'│');
+    tOut('  │ cycles  : '+fmt(G.cyc).padEnd(26)+'│');
+    tOut('  │ data    : '+fmt(G.dat).padEnd(26)+'│');
+    tOut('  │ rep     : '+fmt(G.rep).padEnd(26)+'│');
+    tOut('  │ coins   : '+fmtf(G.coin,4).padEnd(26)+'│','crypto');
+    tOut('  │ virus   : '+String(G.vir).padEnd(26)+'│','virus');
+    tOut('  │ heat    : '+(Math.floor(G.heat)+'/'+G.maxHeat).padEnd(26)+'│',G.heat>G.maxHeat*.8?'err':'out');
+    tOut('  │ exploits: '+String(G.exploits).padEnd(26)+'│');
+    tOut('  └─────────────────────────────────────┘','good');
+    tOut('');
+  }
+  else if(cmd==='alias') tOut('> ['+G.alias+'] @ '+wdef().name+' — '+ctier().name,'good');
+  else if(cmd==='clear') $('term-out').innerHTML='';
+  else if(cmd==='uptime'){var e2=Math.floor(G.elapsed);tOut('> '+Math.floor(e2/3600)+'h '+Math.floor(e2%3600/60)+'m '+e2%60+'s | runs: '+G.runs);}
+  else if(cmd==='whoami') tOut('> uid=0 alias='+G.alias+' world='+G.world,'good');
+  else if(cmd==='theme'){
+    if(['green','amber','red','cyan','purple'].indexOf(args[0])<0){tOut('// valid: green amber red cyan purple','err');return;}
+    setTheme(args[0]); tOut('> theme: '+args[0],'good');
+  }
+  else if(cmd==='worlds'){
+    tOut('');
+    WORLDS.forEach(function(w){
+      var unl=G.runs>=w.req, act=G.world===w.id;
+      tOut('  '+(act?'[ACTIVE] ':unl?'[avail]  ':'[locked] ')+w.name.padEnd(14)+' ×'+w.hm+'heat ×'+w.rm+'reward ['+w.diff+']',act?'good':unl?'out':'sys');
+    });
+    tOut('  // type: world <id>  (null/deep/dark/ghost)','sys');
+    tOut('');
+  }
+  else if(cmd==='world'){
+    var wid=args[0];
+    var wobj=WORLDS.find(function(x){return x.id===wid});
+    if(!wobj){tOut('// unknown world: null deep dark ghost','err');return;}
+    if(G.runs<wobj.req){tOut('// locked — need '+wobj.req+' runs','err');return;}
+    selectWorld(wid); tOut('> entering '+wobj.name+'...','good');
+  }
+  else if(cmd==='scripts'){
+    tOut('');
+    SCRIPT_DEFS.forEach(function(d){
+      var run=activeScripts.find(function(a){return a.id===d.id});
+      var st=!d.avail?'[locked] ':run?'[running]':'[idle]   ';
+      tOut('  '+st+' '+d.name.padEnd(22)+' '+d.cmt,run?'good':!d.avail?'sys':'out');
+    });
+    tOut('');
+  }
+  else if(cmd==='run'){
+    var nm=args.join(' ');
+    if(!nm){tOut('usage: run <script name>','err');return;}
+    var def=SCRIPT_DEFS.find(function(d){return d.name===nm||d.id===nm});
+    if(!def){tOut('// not found: '+nm,'err');return;}
+    if(!def.avail){tOut('// '+nm+': locked','err');return;}
+    if(activeScripts.find(function(s){return s.id===def.id})){tOut('// already running','warn');return;}
+    launch(def.id); tOut('> launching '+def.name+'...','good');
+  }
+  else if(cmd==='exploit'){
+    if(G.heat>G.maxHeat*.8){tOut('// too hot','err');return;}
+    tOut('> exploit_chain.sh...','good');
+    setTimeout(function(){
+      if(rng()>0.4){var rv=ri(8,28);G.cyc+=rv;G.heat+=10*hm();G.tp=Math.min(ctier().goal,G.tp+1.5);tOut('// SUCCESS +'+rv+' cyc','good');}
+      else{G.heat+=18*hm();tOut('// FAILED heat +18','err');}
+    },600);
+  }
+  else if(cmd==='scan'){
+    tOut('> scanning target...','good');
+    setTimeout(function(){
+      var v=['FTP_ANON','SSH_BRUTEFORCE','HTTP_SQLI','SMB_NULL','REDIS_UNAUTH'];
+      var n=ri(1,3);
+      for(var i=0;i<n;i++) tOut('// [VULN] '+v[ri(0,v.length-1)]+' detected','warn');
+      G.heat+=n*4*hm();
+      tOut('// scan done. heat +'+Math.floor(n*4*hm()),'sys');
+    },600);
+  }
+  else if(cmd==='target'){
+    var ct2=ctier(), p=Math.floor(G.tp/ct2.goal*100);
+    var bar='█'.repeat(Math.floor(p/5))+'░'.repeat(20-Math.floor(p/5));
+    tOut('');
+    tOut('  target: '+ct2.target,'good');
+    tOut('  ['+bar+'] '+p+'%');
+    tOut(p>=100?'  // CRACKED — prestige ready!':'  // '+fmt(ct2.goal-G.tp)+' remaining','sys');
+    tOut('');
+  }
+  else if(cmd==='prestige'){
+    if(G.tp<ctier().goal){tOut('// crack target first','err');return;}
+    tOut('> initiating identity_wipe.sh...','good');
+    setTimeout(doPrestige,400);
+  }
+  else if(cmd==='upgrades'){
+    tOut('');
+    UPG_DEFS.forEach(function(u){
+      var lk=!upUnlocked(u), bt=upgBought.has(u.id);
+      var cs=Object.keys(u.cost).map(function(k){return fmt(u.cost[k])+' '+k}).join('+');
+      tOut('  '+(bt?'[installed]':lk?'[locked]  ':'[available]')+' '+u.name,bt?'sys':lk?'sys':'out');
+      if(!lk&&!bt) tOut('              cost: '+cs,'warn');
+    });
+    tOut('');
+  }
+  else if(cmd==='buy'){
+    var nm2=args.join(' ');
+    var u=UPG_DEFS.find(function(x){return x.id===nm2||x.name.toLowerCase().indexOf(nm2.toLowerCase())>=0});
+    if(!u){tOut('// not found: '+nm2,'err');return;}
+    buyUp(u.id);
+    if(upgBought.has(u.id)) tOut('> installed: '+u.name,'good');
+  }
+  else if(cmd==='crypto'){
+    tOut('');
+    tOut('  ⛏ CRYPTO MINING','crypto');
+    COIN_DEFS.forEach(function(coin){
+      var m=miners[coin.id], bal=coinBal[coin.id];
+      var st=!coinUnlocked(coin)?'LOCKED':m.active?'MINING':'idle';
+      var rate=m.active?(coin.rate*G.mMult*G.poolBonus*(1+m.rigs*0.4)).toFixed(5):'0';
+      tOut('  '+coin.icon+' '+coin.name.padEnd(11)+' ['+st.padEnd(6)+'] '+bal.toFixed(4).padStart(12)+'  '+rate+'/s  rigs:'+m.rigs,'crypto');
+    });
+    tOut('');
+  }
+  else if(cmd==='mine'){
+    var cid=args[0];
+    var coin2=COIN_DEFS.find(function(c){return c.id===cid||c.sym.toLowerCase()===String(cid).toLowerCase()});
+    if(!coin2){tOut('// valid: xc0 nlc ghc rtk','err');return;}
+    if(!coinUnlocked(coin2)){
+      var reqs=Object.keys(coin2.ul).map(function(k){return coin2.ul[k]+' '+k}).join(', ');
+      tOut('// '+coin2.name+' locked — need: '+reqs,'err');return;
+    }
+    if(miners[coin2.id].active){tOut('// already mining','warn');return;}
+    toggleMiner(coin2.id);
+    tOut('> '+coin2.icon+' '+coin2.name+' mining started','crypto');
+  }
+  else if(cmd==='stopmine'){
+    COIN_DEFS.forEach(function(c){if(miners[c.id].active) miners[c.id].active=false});
+    tOut('> all miners stopped','crypto'); renderCoins();
+  }
+  else if(cmd==='wallet'){
+    tOut('');
+    tOut('  WALLET','crypto');
+    COIN_DEFS.forEach(function(c){tOut('  '+c.icon+' '+c.sym.padEnd(5)+' '+coinBal[c.id].toFixed(6).padStart(14),'crypto')});
+    tOut('  TOTAL  '+fmtf(G.coin,6).padStart(14),'crypto');
+    tOut('');
+  }
+  else if(cmd==='heat'){
+    var p2=Math.floor(G.heat/G.maxHeat*100);
+    var bar2='█'.repeat(Math.floor(p2/5))+'░'.repeat(20-Math.floor(p2/5));
+    tOut('');
+    tOut('  heat: ['+bar2+'] '+p2+'%',p2>85?'err':p2>60?'warn':'out');
+    tOut('  '+Math.floor(G.heat)+' / '+G.maxHeat+'  decay: '+(1.4*G.hdMult/hm()).toFixed(2)+'/s');
+    tOut('  world mult: ×'+hm(),'warn');
+    tOut('');
+  }
+  else if(cmd==='cooldown'){
+    if(G.dat<120){tOut('// need 120 data','err');return;}
+    G.dat-=120; G.heat=Math.max(0,G.heat-60);
+    tOut('> cooldown: heat -60  data -120','good');
+  }
+  else if(cmd==='virus-status'){
+    tOut('');
+    tOut('  VIRUS STATUS ☣','virus');
+    tOut('  payloads ready: '+G.vir);
+    tOut("  // build more: run build_virus.sh (rep 25)",'sys');
+    tOut('');
+  }
+  else if(cmd==='purge-virus'){G.vir=0;tOut('> virus payloads purged','warn');}
+  else if(cmd==='ping'){
+    var host=args[0]||ctier().target;
+    tOut('> PING '+host);
+    var pi=0;
+    var piv=setInterval(function(){
+      if(pi>=3){clearInterval(piv);tOut('// host alive','good');return;}
+      tOut('  64b seq='+(pi+1)+' time='+ri(3,35)+'ms'); pi++;
+    },280);
+  }
+  else if(cmd==='ls'){
+    ['drwxr-xr-x scripts/','drwxr-xr-x exploits/',
+     '-rwxr-xr-x script.sh','-rw-r--r-- README','-rw------- .session_key'
+    ].forEach(function(l){tOut('  '+l)});
+  }
+  else if(cmd==='cat'){
+    if(args[0]==='README'||args[0]==='README.txt'){
+      ['ROOT v2.1','// mine. exploit. prestige.',
+       '// scripts persist through identity wipe.',
+       '// coins always survive.',
+       '// difficulty scales with world.'
+      ].forEach(function(l){tOut(l)});
+    } else tOut('cat: '+args[0]+': not found','err');
+  }
+  else{
+    tOut('// command not found: '+cmd,'err');
+    tOut("// type 'help' for commands",'sys');
+  }
+}
+
+// input handling
+var inp=$('term-in');
+$('term-sb').addEventListener('click',function(e){
+  if(e.target.tagName!=='BUTTON') inp.focus();
+});
+inp.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){var v=inp.value;inp.value='';runCmd(v);}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(histIdx<cmdHist.length-1){histIdx++;inp.value=cmdHist[histIdx];}}
+  else if(e.key==='ArrowDown'){e.preventDefault();if(histIdx>0){histIdx--;inp.value=cmdHist[histIdx];}else{histIdx=-1;inp.value='';}}
+  else if(e.key==='Tab'){
+    e.preventDefault();
+    var v=inp.value.trim();if(!v)return;
+    var p=v.split(/\s+/);
+    if(p.length===1){
+      var cmds=['help','status','alias','clear','uptime','whoami','theme','worlds','world',
+        'scripts','run','exploit','scan','target','prestige','upgrades','buy',
+        'crypto','mine','stopmine','wallet','heat','cooldown','virus-status','purge-virus','ping','ls','cat'];
+      var m=cmds.filter(function(c){return c.indexOf(p[0])===0});
+      if(m.length===1) inp.value=m[0]+' ';
+      else if(m.length>1){tCmd(v);tOut(m.join('  '),'sys');}
+    } else if(p[0]==='run'){
+      var m2=SCRIPT_DEFS.filter(function(d){return d.avail&&d.name.indexOf(p[1]||'')===0});
+      if(m2.length===1) inp.value='run '+m2[0].name;
+    } else if(p[0]==='mine'){
+      var m3=COIN_DEFS.filter(function(c){return c.id.indexOf(p[1]||'')===0});
+      if(m3.length===1) inp.value='mine '+m3[0].id;
+    } else if(p[0]==='buy'){
+      var m4=UPG_DEFS.filter(function(u){return !upgBought.has(u.id)&&u.id.indexOf(p[1]||'')===0});
+      if(m4.length===1) inp.value='buy '+m4[0].id;
+      else if(m4.length>1){tCmd(v);tOut(m4.map(function(u){return u.id}).join('  '),'sys');}
+    }
+  } else if(e.ctrlKey&&e.key==='l'){e.preventDefault();$('term-out').innerHTML='';}
+});
+setInterval(function(){$('term-prompt').textContent=G.alias.toLowerCase()+'@'+G.world+':~$'},1000);
+
+// boot messages
+var boot=[
+  {t:0,   m:'ROOT OS v2.1 initialized',          c:'good'},
+  {t:180, m:'loading kernel modules...... OK',    c:'out'},
+  {t:360, m:'mounting encrypted fs...... OK',     c:'out'},
+  {t:540, m:'routing through proxy....... OK',    c:'out'},
+  {t:720, m:'// session active. invisible.',       c:'sys'},
+  {t:900, m:'// [▶ TERM] to open terminal',        c:'sys'},
+  {t:1080,m:'// [▶ CMDS] for clickable shortcuts', c:'sys'},
+  {t:1260,m:'',                                    c:'out'},
+];
+boot.forEach(function(b){setTimeout(function(){tOut(b.m,b.c)},b.t)});
+
+// ═══════════════════════════════════════════════════════
+// CMD SIDEBAR
+// ═══════════════════════════════════════════════════════
+var CMD_SECTIONS=[
+  {title:'SYSTEM',cmds:[
+    {cmd:'help',desc:'all commands'},{cmd:'status',desc:'full stats'},
+    {cmd:'alias',desc:'show alias'},{cmd:'clear',desc:'clear terminal'},
+    {cmd:'uptime',desc:'session time'},{cmd:'whoami',desc:'identity'},
+    {cmd:'theme green',desc:'green'},{cmd:'theme amber',desc:'amber'},
+    {cmd:'theme red',desc:'red'},{cmd:'theme cyan',desc:'cyan'},{cmd:'theme purple',desc:'purple'},
+  ]},
+  {title:'HACKING',cmds:[
+    {cmd:'scripts',desc:'list scripts'},
+    {cmd:'run script.sh',desc:'cycle gen'},
+    {cmd:'run harvest_data.py',desc:'harvest data'},
+    {cmd:'run exploit_ftp.py',desc:'ftp exploit'},
+    {cmd:'run darknet_post.sh',desc:'earn rep'},
+    {cmd:'run root_access.py',desc:'priv escalate'},
+    {cmd:'run build_virus.sh',desc:'compile payload'},
+    {cmd:'exploit',desc:'random exploit burst'},
+    {cmd:'scan',desc:'scan target vulns'},
+    {cmd:'target',desc:'target progress'},
+    {cmd:'prestige',desc:'wipe identity'},
+  ]},
+  {title:'CRYPTO ⛏',cmds:[
+    {cmd:'crypto',desc:'mining dashboard'},
+    {cmd:'mine xc0',desc:'start xC0IN'},
+    {cmd:'mine nlc',desc:'start nullCash'},
+    {cmd:'mine ghc',desc:'start GhostCoin'},
+    {cmd:'mine rtk',desc:'start rootToken'},
+    {cmd:'stopmine',desc:'stop all miners'},
+    {cmd:'wallet',desc:'coin balances'},
+  ]},
+  {title:'UPGRADES',cmds:[
+    {cmd:'upgrades',desc:'list all'},
+    {cmd:'buy cpu1',desc:'overclock v1'},
+    {cmd:'buy cpu2',desc:'overclock v2'},
+    {cmd:'buy stlth',desc:'stealth mode'},
+    {cmd:'buy vpn',desc:'vpn chain'},
+    {cmd:'buy asic',desc:'asic miner'},
+    {cmd:'buy bot',desc:'passive botnet'},
+    {cmd:'buy zday',desc:'0day bundle'},
+  ]},
+  {title:'WORLDS',cmds:[
+    {cmd:'worlds',desc:'list worlds'},
+    {cmd:'world null',desc:'null sector'},
+    {cmd:'world deep',desc:'deep net'},
+    {cmd:'world dark',desc:'dark matrix'},
+    {cmd:'world ghost',desc:'ghost layer'},
+  ]},
+  {title:'MISC',cmds:[
+    {cmd:'heat',desc:'heat status'},
+    {cmd:'cooldown',desc:'reduce heat'},
+    {cmd:'virus-status',desc:'virus info'},
+    {cmd:'ping',desc:'ping target'},
+    {cmd:'ls',desc:'list files'},
+    {cmd:'cat README',desc:'read readme'},
+  ]},
+];
+
+function renderCmdSidebar(secs){
+  var el=$('cmd-list'); el.innerHTML='';
+  secs.forEach(function(sec){
+    var s=document.createElement('div');
+    s.innerHTML='<div class="cs-title">// '+sec.title+'</div>';
+    sec.cmds.forEach(function(c){
+      var b=document.createElement('button');
+      b.className='cbtn';
+      b.innerHTML='<span class="cb-cmd">'+c.cmd+'</span><span class="cb-desc">'+c.desc+'</span>';
+      (function(cc){
+        b.addEventListener('click',function(){
+          runCmd(cc);
+          if(!termOpen) toggleTerm();
+        });
+      })(c.cmd);
+      s.appendChild(b);
+    });
+    el.appendChild(s);
+  });
+}
+function filterCmds(q){
+  if(!q.trim()){renderCmdSidebar(CMD_SECTIONS);return;}
+  var lq=q.toLowerCase();
+  var f=CMD_SECTIONS.map(function(s){
+    return {title:s.title,cmds:s.cmds.filter(function(c){return c.cmd.indexOf(lq)>=0||c.desc.indexOf(lq)>=0})};
+  }).filter(function(s){return s.cmds.length>0});
+  renderCmdSidebar(f);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderScripts();
+renderCoins();
+renderUps();
+renderCmdSidebar(CMD_SECTIONS);
+sv('tgt-name',ctier().target);
+sv('tgt-pct','0 / '+ctier().goal);
+sv('h-world','◈ '+wdef().name);
+log('// ROOT OS v2.1 online','good');
+log('// world: '+wdef().name+'  tier: '+ctier().name);
+log('// buy upgrades early — difficulty is real','warn');
+log('// [▶ TERM] = terminal   [▶ CMDS] = shortcuts');
+launch('sh');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
